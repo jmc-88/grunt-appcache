@@ -10,6 +10,7 @@
 
 module.exports.init = function (grunt) {
 
+	var path = require('path');
 	var exports = {};
 
 	exports.readManifest = function (filepath) {
@@ -99,7 +100,7 @@ module.exports.init = function (grunt) {
 			contents.push("");
 			contents.push("CACHE:");
 			for (i = 0; i < manifest.cache.length; ++i) {
-				contents.push(manifest.cache[i]);
+				contents.push(manifest.cache[i].split(path.sep).join('/'));
 			}
 		}
 

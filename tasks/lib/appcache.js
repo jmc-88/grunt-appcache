@@ -87,40 +87,40 @@ module.exports.init = function (grunt) {
 	};
 
 	exports.writeManifest = function (filepath, manifest) {
-		var contents = ["CACHE MANIFEST"];
+		var contents = ['CACHE MANIFEST'];
 		var i;
 
 		if (manifest.version.date.toISOString) {
-			contents.push("# rev " + manifest.version.revision + " - " + manifest.version.date.toISOString());
+			contents.push('# rev ' + manifest.version.revision + ' - ' + manifest.version.date.toISOString());
 		} else {
-			contents.push("# rev " + manifest.version.revision + " - " + manifest.version.date);
+			contents.push('# rev ' + manifest.version.revision + ' - ' + manifest.version.date);
 		}
 
 		if (0 !== manifest.cache.length) {
-			contents.push("");
-			contents.push("CACHE:");
+			contents.push('');
+			contents.push('CACHE:');
 			for (i = 0; i < manifest.cache.length; ++i) {
 				contents.push(manifest.cache[i].split(path.sep).join('/'));
 			}
 		}
 
 		if (0 !== manifest.network.length) {
-			contents.push("");
-			contents.push("NETWORK:");
+			contents.push('');
+			contents.push('NETWORK:');
 			for (i = 0; i < manifest.network.length; ++i) {
 				contents.push(manifest.network[i]);
 			}
 		}
 
 		if (0 !== manifest.fallback.length) {
-			contents.push("");
-			contents.push("FALLBACK:");
+			contents.push('');
+			contents.push('FALLBACK:');
 			for (i = 0; i < manifest.fallback.length; ++i) {
 				contents.push(manifest.fallback[i]);
 			}
 		}
 
-		return grunt.file.write(filepath, contents.join("\n"));
+		return grunt.file.write(filepath, contents.join('\n'));
 	};
 
 	return exports;

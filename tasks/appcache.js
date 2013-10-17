@@ -17,12 +17,21 @@ module.exports = function (grunt) {
 		return input;
 	}
 
+	function isAbsolutePath(path) {
+		return (/^https?:\/\//i).test(path);
+	}
+
 	function expand(input) {
 		var list = [];
 		input.forEach(function (pattern) {
-			list.push.apply(list, grunt.file.expand(pattern).filter(function (filepath) {
-				return grunt.file.exists(filepath) && grunt.file.isFile(filepath);
-			}));
+			if(isAbsolutePath(pattern)) {
+				list.push(pattern);
+			}
+			else {
+				list.push.apply(list, grunt.file.expand(pattern).filter(function (filepath) {
+					return grunt.file.exists(filepath) && grunt.file.isFile(filepath);
+				}));
+			}
 		});
 		return list;
 	}
@@ -61,6 +70,9 @@ module.exports = function (grunt) {
 			cache: filter(this.data.cache, expand).filter(function (filepath) {
 				return (-1 === ignored.indexOf(path.normalize(filepath)));
 			}).map(function (filepath) {
+				if (isAbsolutePath(filepath)) {
+					return filepath;
+				}
 				return path.relative(options.basePath, path.normalize(filepath));
 			}),
 			network: filter(this.data.network || [], identity),

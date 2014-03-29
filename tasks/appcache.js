@@ -18,7 +18,7 @@ module.exports = function (grunt) {
 	}
 
 	function isAbsolutePath(path) {
-		return (/^https?:\/\//i).test(path);
+		return (/^(?:https?:)?\/\//i).test(path);
 	}
 
 	function expand(input) {

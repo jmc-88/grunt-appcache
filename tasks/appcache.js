@@ -13,84 +13,77 @@ module.exports = function (grunt) {
     var path = require('path');
     var appcache = require('./lib/appcache').init(grunt);
 
-    function identity(input) {
-        return input;
+    function array(input) {
+        return Array.isArray(input) ? input : [input];
     }
 
-    function isAbsolutePath(path) {
+    function isUrl(path) {
         return (/^(?:https?:)?\/\//i).test(path);
     }
 
-    function expand(input) {
-        var list = [];
-        input.forEach(function (pattern) {
-            if(isAbsolutePath(pattern)) {
-                list.push(pattern);
-            }
-            else {
-                list.push.apply(list, grunt.file.expand(pattern).filter(function (filepath) {
-                    return grunt.file.exists(filepath) && grunt.file.isFile(filepath);
-                }));
-            }
-        });
-        return list;
+    function relative(basePath, filePath) {
+        return path.relative(
+                path.normalize(basePath),
+                path.normalize(filePath));
     }
 
-    function filter(input, action) {
-        if (!Array.isArray(input)) {
-            input = [input];
+    function expand(pattern, basePath) {
+        var matches = grunt.file.expand({
+            filter: function (src) {
+                return grunt.file.isFile(src) || isUrl(src);
+            }
+        }, pattern);
+        if (typeof basePath === 'string') {
+            matches = matches.map(function (filePath) {
+                return relative(basePath, filePath);
+            });
         }
-        return action(input);
+        return matches;
     }
 
     grunt.registerMultiTask('appcache', 'Automatically generates an HTML5 AppCache manifest from a list of files.', function () {
+        var output = path.normalize(this.data.dest);
         var options = this.options({
             basePath: process.cwd(),
             ignoreManifest: true,
             preferOnline: false
         });
 
-        options.basePath = path.normalize(options.basePath);
-
         var ignored = [];
         if (this.data.ignored) {
-            ignored = filter(this.data.ignored, expand).map(function (filepath) {
-                return path.normalize(filepath);
-            });
+            ignored = expand(this.data.ignored, options.basePath);
+        }
+        if (options.ignoreManifest) {
+            ignored.push(relative(options.basePath, output));
         }
 
-        if (options.ignoreManifest) {
-            ignored.push(path.normalize(this.data.dest));
-        }
+        var cache = expand(this.data.cache, options.basePath).filter(function (path) {
+            return ignored.indexOf(path) === -1;
+        });
 
         var manifest = {
             version: {
                 revision: 1,
                 date: new Date()
             },
-            cache: filter(this.data.cache, expand).filter(function (filepath) {
-                return (-1 === ignored.indexOf(path.normalize(filepath)));
-            }).map(function (filepath) {
-                if (isAbsolutePath(filepath)) {
-                    return filepath;
-                }
-                return path.relative(options.basePath, path.normalize(filepath));
-            }),
-            network: filter(this.data.network || [], identity),
-            fallback: filter(this.data.fallback || [], identity)
+            cache: cache,
+            network: array(this.data.network || []),
+            fallback: array(this.data.fallback || [])
         };
 
-        if (grunt.file.exists(this.data.dest)) {
-            var original = appcache.readManifest(this.data.dest);
+        if (grunt.file.exists(output)) {
+            var original = appcache.readManifest(output);
             manifest.version.revision = (1 + original.version.revision);
         }
 
-        if (!appcache.writeManifest(this.data.dest, manifest)) {
+        if (!appcache.writeManifest(output, manifest)) {
             grunt.log.error('AppCache manifest creation failed.');
             return false;
         }
 
-        grunt.log.writeln('AppCache manifest "' + this.data.dest + '" created.');
+        grunt.log.writeln('AppCache manifest "' +
+                path.basename(output) +
+                '" created.');
     });
 
 };

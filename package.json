@@ -1,7 +1,7 @@
 {
   "name": "grunt-appcache",
   "description": "Grunt task for generating an HTML5 AppCache manifest.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "homepage": "http://canvace.com/",
   "author": {
     "name": "Canvace Srl",
@@ -32,6 +32,6 @@
     "grunt": "~0.4.1"
   },
   "keywords": [
-    "gruntplugin", "html5", "manifest", "appcache"
+    "grunt", "gruntplugin", "html5", "manifest", "appcache"
   ]
 }

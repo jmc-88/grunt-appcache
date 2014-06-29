@@ -57,9 +57,18 @@ module.exports = function (grunt) {
             ignored.push(relative(options.basePath, output));
         }
 
-        var cache = expand(this.data.cache, options.basePath).filter(function (path) {
+        var cachePatterns = array(this.data.cache || []);
+        if (typeof this.data.cache === 'object') {
+            this.data.cache.patterns = array(this.data.cache.patterns || []);
+            this.data.cache.literals = array(this.data.cache.literals || []);
+            cachePatterns = this.data.cache.patterns;
+        }
+        var cache = expand(cachePatterns, options.basePath).filter(function (path) {
             return ignored.indexOf(path) === -1;
         });
+        if (typeof this.data.cache === 'object') {
+            cache.concat(this.data.cache.literals);
+        }
 
         var manifest = {
             version: {

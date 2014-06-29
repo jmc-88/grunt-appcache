@@ -67,7 +67,7 @@ module.exports = function (grunt) {
             return ignored.indexOf(path) === -1;
         });
         if (typeof this.data.cache === 'object') {
-            cache.concat(this.data.cache.literals);
+            Array.prototype.push.apply(cache, this.data.cache.literals);
         }
 
         var manifest = {

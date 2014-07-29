@@ -43,6 +43,12 @@ Default value: `process.cwd()`
 
 The absolute or relative path to the directory to consider as the root of the application for which to generate the cache manifest.
 
+#### options.baseUrl
+Type: `String`
+Default value: `undefined`
+
+The base URL to prepand to all expanded cache entries.
+
 #### options.ignoreManifest
 Type: `Boolean`
 Default value: `true`

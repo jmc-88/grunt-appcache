@@ -21,6 +21,13 @@ module.exports = function (grunt) {
         return (/^(?:https?:)?\/\//i).test(path);
     }
 
+    function joinUrl(/* ... */) {
+        return Array.prototype.map.call(arguments, function (part) {
+            // remove trailing slashes
+            return part.replace(/\/+$/, '');
+        }).join('/');
+    }
+
     function relative(basePath, filePath) {
         return path.relative(
                 path.normalize(basePath),
@@ -66,6 +73,11 @@ module.exports = function (grunt) {
         var cache = expand(cachePatterns, options.basePath).filter(function (path) {
             return ignored.indexOf(path) === -1;
         });
+        if (typeof options.baseUrl === 'string') {
+            cache = cache.map(function (path) {
+                return joinUrl(options.baseUrl, path);
+            });
+        }
         if (typeof this.data.cache === 'object') {
             Array.prototype.push.apply(cache, this.data.cache.literals);
         }

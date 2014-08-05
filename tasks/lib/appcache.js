@@ -41,7 +41,8 @@ module.exports.init = function (grunt) {
         var manifestSections = {
             'CACHE:': 'cache',
             'NETWORK:': 'network',
-            'FALLBACK:': 'fallback'
+            'FALLBACK:': 'fallback',
+            'SETTINGS': 'settings'
         };
 
         for (var i = 0; i < lines.length; ++i) {
@@ -117,6 +118,14 @@ module.exports.init = function (grunt) {
             contents.push('FALLBACK:');
             for (i = 0; i < manifest.fallback.length; ++i) {
                 contents.push(manifest.fallback[i]);
+            }
+        }
+
+        if (0 !== manifest.settings.length) {
+            contents.push('');
+            contents.push('SETTINGS:');
+            for (i = 0; i < manifest.settings.length; ++i) {
+                contents.push(manifest.settings[i]);
             }
         }
 

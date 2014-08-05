@@ -49,6 +49,12 @@ Default value: `true`
 
 Specifies if to ignore the cache manifest itself from the list of files to insert in the "CACHE:" section.
 
+#### options.preferOnline
+Type: `Boolean`
+Default value: `false`
+
+Specifies whether to write the "prefer-online" entry in the "SETTINGS:" section or not. [More information](http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#appcache).  
+
 ### Target fields
 
 #### dest

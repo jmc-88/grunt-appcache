@@ -77,7 +77,8 @@ module.exports = function (grunt) {
             },
             cache: cache,
             network: array(this.data.network || []),
-            fallback: array(this.data.fallback || [])
+            fallback: array(this.data.fallback || []),
+            settings: options.preferOnline ? ['prefer-online'] : []
         };
 
         if (grunt.file.exists(output)) {

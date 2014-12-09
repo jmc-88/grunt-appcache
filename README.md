@@ -69,6 +69,16 @@ Default value: `undefined`
 The base URL to prepand to all expanded cache entries. It should be let to `undefined` in case of
 webapp, or set to `/bower_components/mywebcomponent` in case of bower module.
 
+#### includes
+Type: `Grunt globbing pattern`
+Default value: `undefined`
+
+The purposes is to merge all manifest files that match the globbing pattern into this generated
+manifest appcache. Each sections : cache, network and fallback are merged and then filled with
+`cache`, `network` and `fallback` target fields. It is very useful when 
+you create you own bower component with this grunt appcahe task or when you use a third party
+components that include his appcache manifest. See Bower usage examples bellow.
+
 #### cache
 
 A descriptor for the "CACHE:" entries. A cache descriptor can be either a `String` or an `Array` of `String`s, in the format accepted by the `patterns` argument to [grunt.file.expand](http://gruntjs.com/api/grunt.file#grunt.file.expand).

@@ -48,6 +48,19 @@ module.exports = function (grunt) {
         return matches;
     }
 
+    function uniq(array) {
+        var initial = array;
+        var results = [];
+        var seen = [];
+        initial.forEach( function(value, index) {
+            if( seen.indexOf( value) === -1) {
+                seen.push(value);
+                results.push(array[index]);
+            }
+        });
+        return results;
+    }
+
     grunt.registerMultiTask('appcache', 'Automatically generates an HTML5 AppCache manifest from a list of files.', function () {
         var self = this;
         var output = path.normalize(this.data.dest);
@@ -71,26 +84,49 @@ module.exports = function (grunt) {
             this.data.cache.literals = array(this.data.cache.literals || []);
             cachePatterns = this.data.cache.patterns;
         }
-        var cache = expand(cachePatterns, options.basePath).filter(function (path) {
-            return ignored.indexOf(path) === -1;
-        });
-        if (typeof this.data.baseUrl === 'string') {
-            cache = cache.map(function (path) {
-                return joinUrl(self.data.baseUrl, path);
+
+        var fallback = array(this.data.fallback || []);
+        var network = array(this.data.network || []);
+        var cache = [];
+
+        if (this.data.includes) {
+            // first parse appcache files to include it
+            expand(this.data.includes, options.basePath)
+            .map(function (path) {
+                return joinUrl(options.basePath, path);
+            })
+            .forEach( function(filename) {
+                var manifest = appcache.readManifest(filename);
+                Array.prototype.push.apply(cache, manifest.cache);
+                Array.prototype.push.apply(network, manifest.network);
+                Array.prototype.push.apply(fallback, manifest.fallback);
             });
         }
+
         if (typeof this.data.cache === 'object') {
+            // second add literals to the cache
             Array.prototype.push.apply(cache, this.data.cache.literals);
         }
+
+        // then add patterns to the cache
+        Array.prototype.push.apply(cache,
+            expand(cachePatterns, options.basePath)
+            .filter(function (path) {
+                return ignored.indexOf(path) === -1;
+            })
+            .map(function (path) {
+                return self.data.baseUrl ? joinUrl(self.data.baseUrl, path) : path;
+            })
+        );
 
         var manifest = {
             version: {
                 revision: 1,
                 date: new Date()
             },
-            cache: cache,
-            network: array(this.data.network || []),
-            fallback: array(this.data.fallback || []),
+            cache: uniq(cache),
+            network: uniq(network),
+            fallback: uniq(fallback),
             settings: options.preferOnline ? ['prefer-online'] : []
         };
 

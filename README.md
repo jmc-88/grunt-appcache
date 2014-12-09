@@ -43,12 +43,6 @@ Default value: `process.cwd()`
 
 The absolute or relative path to the directory to consider as the root of the application for which to generate the cache manifest.
 
-#### options.baseUrl
-Type: `String`
-Default value: `undefined`
-
-The base URL to prepand to all expanded cache entries.
-
 #### options.ignoreManifest
 Type: `Boolean`
 Default value: `true`
@@ -66,6 +60,14 @@ Specifies whether to write the "prefer-online" entry in the "SETTINGS:" section 
 #### dest
 
 `String` indicating the output path for the AppCache manifest.
+
+
+#### baseUrl
+Type: `String`
+Default value: `undefined`
+
+The base URL to prepand to all expanded cache entries. It should be let to `undefined` in case of
+webapp, or set to `/bower_components/mywebcomponent` in case of bower module.
 
 #### cache
 

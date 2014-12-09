@@ -49,6 +49,7 @@ module.exports = function (grunt) {
     }
 
     grunt.registerMultiTask('appcache', 'Automatically generates an HTML5 AppCache manifest from a list of files.', function () {
+        var self = this;
         var output = path.normalize(this.data.dest);
         var options = this.options({
             basePath: process.cwd(),
@@ -73,9 +74,9 @@ module.exports = function (grunt) {
         var cache = expand(cachePatterns, options.basePath).filter(function (path) {
             return ignored.indexOf(path) === -1;
         });
-        if (typeof options.baseUrl === 'string') {
+        if (typeof this.data.baseUrl === 'string') {
             cache = cache.map(function (path) {
-                return joinUrl(options.baseUrl, path);
+                return joinUrl(self.data.baseUrl, path);
             });
         }
         if (typeof this.data.cache === 'object') {

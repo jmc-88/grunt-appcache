@@ -82,6 +82,7 @@ module.exports = function (grunt) {
         if (typeof this.data.cache === 'object') {
             this.data.cache.patterns = array(this.data.cache.patterns || []);
             this.data.cache.literals = array(this.data.cache.literals || []);
+            this.data.cache.pageslinks = array(this.data.cache.pageslinks || []);
             cachePatterns = this.data.cache.patterns;
         }
 
@@ -104,7 +105,29 @@ module.exports = function (grunt) {
         }
 
         if (typeof this.data.cache === 'object') {
-            // second add literals to the cache
+            // seconds add link to the cache
+            expand(this.data.cache.pageslinks).forEach( function(filename) {
+                var content = grunt.file.read( filename);
+                // parse css
+                (content.match(/<link\s+(?:[^>]+\s+)*rel=(?:"\s*|'\s*)?[^>]*>/ig) || [])
+                .forEach(function(css) {
+                    var src = css.match(/href=(?:"\s*|'\s*)?([^>"']+)\s*(?:'|"|\s)?/i)[1].trim();
+                    if (!/^['"]?data:/i.test(src)) {
+                         cache.push(src);
+                    }
+                });
+
+                // parse scripts
+                (content.match(/<script\s+(?:[^>]+\s+)?src=["']?\s*([^>]+)\s*["']?[\s>\/]/ig) || [])
+                .forEach(function(script) {
+                    var src = script.match(/src=["']?\s*([^>"']+)\s*["']?/i)[1].trim();
+                    if (!/^['"]?data:/i.test(src)) {
+                        cache.push(src);
+                    }                    
+                });
+            });
+
+            // third add literals to the cache
             Array.prototype.push.apply(cache, this.data.cache.literals);
         }
 

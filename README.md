@@ -112,6 +112,21 @@ Files to be ignored and excluded from the "CACHE:" entries. This parameter has b
 
 `String` or `Array` of `String`s to insert as is in the "FALLBACK:" section.
 
+#### setAttribut
+
+Type: `Grunt globbing pattern` 
+Default value: `undefined`.
+[globbing pattern spec](http://gruntjs.com/configuring-tasks#globbing-patterns)
+
+Add attribut `manifest` into the html tag of files given with the globbing pattern with the value of
+`baseUrl` followed by the basename of `dest'.
+
+This option is useful for project that have a build process. In development mode, usualy `grunt serve` 
+give access to source code. The purpose of this field is to test in production mode. After a 
+`grunt build` command that include this appcache task, you have a distribution webapp in you `dist` 
+folder with appcache activated. Just launch 'grunt serve:dist' to test you application with
+the aapcache and your minified app. 
+
 ### Usage Examples
 
 In this example, the module is set to generate an AppCache manifest from the contents of the `static` directory, placing the resulting manifest in `static/manifest.appcache`. The `basePath` option allows the module to generate paths relative to the `static` directory, instead of the directory where the gruntfile resides.

@@ -223,7 +223,7 @@ grunt.initConfig({
             // don't forget to cache the root
             literals: '/',
             // and finish to add components which haven't a partial appcache
-            pagelinks: 'dist/index.html'
+            pageslinks: 'dist/index.html'
         },
         network: '*',
         fallback: '/ /offline.html'

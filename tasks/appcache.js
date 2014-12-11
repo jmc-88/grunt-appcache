@@ -48,7 +48,21 @@ module.exports = function (grunt) {
         return matches;
     }
 
+    function uniq(array) {
+        var initial = array;
+        var results = [];
+        var seen = [];
+        initial.forEach( function(value, index) {
+            if( seen.indexOf( value) === -1) {
+                seen.push(value);
+                results.push(array[index]);
+            }
+        });
+        return results;
+    }
+
     grunt.registerMultiTask('appcache', 'Automatically generates an HTML5 AppCache manifest from a list of files.', function () {
+        var self = this;
         var output = path.normalize(this.data.dest);
         var options = this.options({
             basePath: process.cwd(),
@@ -68,28 +82,74 @@ module.exports = function (grunt) {
         if (typeof this.data.cache === 'object') {
             this.data.cache.patterns = array(this.data.cache.patterns || []);
             this.data.cache.literals = array(this.data.cache.literals || []);
+            this.data.cache.pageslinks = array(this.data.cache.pageslinks || []);
             cachePatterns = this.data.cache.patterns;
         }
-        var cache = expand(cachePatterns, options.basePath).filter(function (path) {
-            return ignored.indexOf(path) === -1;
-        });
-        if (typeof options.baseUrl === 'string') {
-            cache = cache.map(function (path) {
-                return joinUrl(options.baseUrl, path);
+
+        var fallback = array(this.data.fallback || []);
+        var network = array(this.data.network || []);
+        var cache = [];
+
+        if (this.data.includes) {
+            // first parse appcache files to include it
+            expand(this.data.includes, options.basePath)
+            .map(function (path) {
+                return joinUrl(options.basePath, path);
+            })
+            .forEach( function(filename) {
+                var manifest = appcache.readManifest(filename);
+                Array.prototype.push.apply(cache, manifest.cache);
+                Array.prototype.push.apply(network, manifest.network);
+                Array.prototype.push.apply(fallback, manifest.fallback);
             });
         }
+
         if (typeof this.data.cache === 'object') {
+            // seconds add link to the cache
+            expand(this.data.cache.pageslinks).forEach( function(filename) {
+                var content = grunt.file.read( filename);
+                // parse css
+                (content.match(/<link\s+(?:[^>]+\s+)*rel=(?:"\s*|'\s*)?[^>]*>/ig) || [])
+                .forEach(function(css) {
+                    var src = css.match(/href=(?:"\s*|'\s*)?([^>"']+)\s*(?:'|"|\s)?/i)[1].trim();
+                    if (!/^['"]?data:/i.test(src)) {
+                         cache.push(src);
+                    }
+                });
+
+                // parse scripts
+                (content.match(/<script\s+(?:[^>]+\s+)?src=["']?\s*([^>]+)\s*["']?[\s>\/]/ig) || [])
+                .forEach(function(script) {
+                    var src = script.match(/src=["']?\s*([^>"']+)\s*["']?/i)[1].trim();
+                    if (!/^['"]?data:/i.test(src)) {
+                        cache.push(src);
+                    }                    
+                });
+            });
+
+            // third add literals to the cache
             Array.prototype.push.apply(cache, this.data.cache.literals);
         }
+
+        // then add patterns to the cache
+        Array.prototype.push.apply(cache,
+            expand(cachePatterns, options.basePath)
+            .filter(function (path) {
+                return ignored.indexOf(path) === -1;
+            })
+            .map(function (path) {
+                return self.data.baseUrl ? joinUrl(self.data.baseUrl, path) : path;
+            })
+        );
 
         var manifest = {
             version: {
                 revision: 1,
                 date: new Date()
             },
-            cache: cache,
-            network: array(this.data.network || []),
-            fallback: array(this.data.fallback || []),
+            cache: uniq(cache),
+            network: uniq(network),
+            fallback: uniq(fallback),
             settings: options.preferOnline ? ['prefer-online'] : []
         };
 
@@ -101,6 +161,19 @@ module.exports = function (grunt) {
         if (!appcache.writeManifest(output, manifest)) {
             grunt.log.error('AppCache manifest creation failed.');
             return false;
+        }
+
+        if (this.data.setAttribut) {
+            // compute the url of the manifest. ex: dest='dist/manifest.appcache' -> /manifest.appcache
+            var startIndex = this.data.dest.indexOf( '/');
+            var baseName = this.data.dest.substring( startIndex === -1 ? 0 : startIndex+1);
+            var webName = self.data.baseUrl ? joinUrl(self.data.baseUrl, baseName) : baseName;
+            expand(this.data.setAttribut)
+            .forEach( function(filename) {
+                var content = grunt.file.read( filename);
+                var tmp = content.replace( /manifest=["']?\s*[^>"']+\s*["']?/ig, '');
+                grunt.file.write( filename, tmp.replace( '<html', '<html manifest="'+webName+'"'));
+            });
         }
 
         grunt.log.writeln('AppCache manifest "' +

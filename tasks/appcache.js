@@ -52,8 +52,8 @@ module.exports = function (grunt) {
         var initial = array;
         var results = [];
         var seen = [];
-        initial.forEach( function(value, index) {
-            if( seen.indexOf( value) === -1) {
+        initial.forEach(function(value, index) {
+            if(seen.indexOf(value) === -1) {
                 seen.push(value);
                 results.push(array[index]);
             }
@@ -96,7 +96,7 @@ module.exports = function (grunt) {
             .map(function (path) {
                 return joinUrl(options.basePath, path);
             })
-            .forEach( function(filename) {
+            .forEach(function(filename) {
                 var manifest = appcache.readManifest(filename);
                 Array.prototype.push.apply(cache, manifest.cache);
                 Array.prototype.push.apply(network, manifest.network);
@@ -106,14 +106,14 @@ module.exports = function (grunt) {
 
         if (typeof this.data.cache === 'object') {
             // seconds add link to the cache
-            expand(this.data.cache.pageslinks).forEach( function(filename) {
-                var content = grunt.file.read( filename);
+            expand(this.data.cache.pageslinks).forEach(function(filename) {
+                var content = grunt.file.read(filename);
                 // parse css
                 (content.match(/<link\s+(?:[^>]+\s+)*rel=(?:"\s*|'\s*)?[^>]*>/ig) || [])
                 .forEach(function(css) {
                     var src = css.match(/href=(?:"\s*|'\s*)?([^>"']+)\s*(?:'|"|\s)?/i)[1].trim();
                     if (!/^['"]?data:/i.test(src)) {
-                         cache.push(src);
+                        cache.push(src);
                     }
                 });
 
@@ -123,7 +123,7 @@ module.exports = function (grunt) {
                     var src = script.match(/src=["']?\s*([^>"']+)\s*["']?/i)[1].trim();
                     if (!/^['"]?data:/i.test(src)) {
                         cache.push(src);
-                    }                    
+                    }
                 });
             });
 
@@ -165,14 +165,14 @@ module.exports = function (grunt) {
 
         if (this.data.setAttribut) {
             // compute the url of the manifest. ex: dest='dist/manifest.appcache' -> /manifest.appcache
-            var startIndex = this.data.dest.indexOf( '/');
-            var baseName = this.data.dest.substring( startIndex === -1 ? 0 : startIndex+1);
+            var startIndex = this.data.dest.indexOf('/');
+            var baseName = this.data.dest.substring(startIndex === -1 ? 0 : startIndex+1);
             var webName = self.data.baseUrl ? joinUrl(self.data.baseUrl, baseName) : baseName;
             expand(this.data.setAttribut)
-            .forEach( function(filename) {
-                var content = grunt.file.read( filename);
-                var tmp = content.replace( /manifest=["']?\s*[^>"']+\s*["']?/ig, '');
-                grunt.file.write( filename, tmp.replace( '<html', '<html manifest="'+webName+'"'));
+            .forEach(function(filename) {
+                var content = grunt.file.read(filename);
+                var tmp = content.replace(/manifest=["']?\s*[^>"']+\s*["']?/ig, '');
+                grunt.file.write(filename, tmp.replace('<html', '<html manifest="'+webName+'"'));
             });
         }
 

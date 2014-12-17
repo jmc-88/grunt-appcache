@@ -11,6 +11,7 @@
 module.exports = function (grunt) {
 
     var path = require('path');
+    var cheerio = require('cheerio');
     var appcache = require('./lib/appcache').init(grunt);
 
     function array(input) {
@@ -101,21 +102,20 @@ module.exports = function (grunt) {
             // seconds add link to the cache
             expand(this.data.cache.pageslinks).forEach(function(filename) {
                 var content = grunt.file.read(filename);
-                // parse css
-                (content.match(/<link\s+(?:[^>]+\s+)*rel=(?:"\s*|'\s*)?[^>]*>/ig) || [])
-                .forEach(function(css) {
-                    var src = css.match(/href=(?:"\s*|'\s*)?([^>"']+)\s*(?:'|"|\s)?/i)[1].trim();
-                    if (!/^['"]?data:/i.test(src)) {
-                        cache.push(src);
+                var $ = cheerio.load( content); 
+                // parse links
+                $('link[href]').each(function() {
+                    var href = $(this).attr('href');
+                    if( href.indexOf('data:') !== 0) {
+                        cache.push(href);                     
                     }
                 });
 
                 // parse scripts
-                (content.match(/<script\s+(?:[^>]+\s+)?src=["']?\s*([^>]+)\s*["']?[\s>\/]/ig) || [])
-                .forEach(function(script) {
-                    var src = script.match(/src=["']?\s*([^>"']+)\s*["']?/i)[1].trim();
-                    if (!/^['"]?data:/i.test(src)) {
-                        cache.push(src);
+                $('script[src]').each(function() {
+                    var src = $(this).attr('src');
+                    if( src.indexOf('data:') !== 0) {
+                        cache.push(src);                     
                     }
                 });
             });

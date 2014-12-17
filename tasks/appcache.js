@@ -49,16 +49,9 @@ module.exports = function (grunt) {
     }
 
     function uniq(array) {
-        var initial = array;
-        var results = [];
-        var seen = [];
-        initial.forEach(function(value, index) {
-            if(seen.indexOf(value) === -1) {
-                seen.push(value);
-                results.push(array[index]);
-            }
+        return array.filter(function (value, index) {
+            return array.indexOf(value) === index;
         });
-        return results;
     }
 
     grunt.registerMultiTask('appcache', 'Automatically generates an HTML5 AppCache manifest from a list of files.', function () {

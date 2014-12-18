@@ -88,7 +88,7 @@ module.exports = function (grunt) {
             // first parse appcache files to include it
             expand(this.data.includes, options.basePath)
             .map(function (path) {
-                return joinUrl(options.basePath, path);
+                return options.basePath ? joinUrl(options.basePath, path) : path;
             })
             .forEach(function(filename) {
                 var manifest = appcache.readManifest(filename);

@@ -102,19 +102,19 @@ module.exports = function (grunt) {
             // seconds add link to the cache
             expand(this.data.cache.pageslinks).forEach(function(filename) {
                 var content = grunt.file.read(filename);
-                var $ = cheerio.load( content); 
+                var $ = cheerio.load(content); 
                 // parse links
                 $('link[href]').each(function() {
                     var href = $(this).attr('href');
-                    if( href.indexOf('data:') !== 0) {
-                        cache.push(href);                     
+                    if(href.indexOf('data:') !== 0) {
+                        cache.push(href);
                     }
                 });
 
                 // parse scripts
                 $('script[src]').each(function() {
                     var src = $(this).attr('src');
-                    if( src.indexOf('data:') !== 0) {
+                    if(src.indexOf('data:') !== 0) {
                         cache.push(src);                     
                     }
                 });

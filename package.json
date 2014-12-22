@@ -32,6 +32,13 @@
     "grunt": "~0.4.1"
   },
   "keywords": [
-    "grunt", "gruntplugin", "html5", "manifest", "appcache"
-  ]
+    "grunt",
+    "gruntplugin",
+    "html5",
+    "manifest",
+    "appcache"
+  ],
+  "dependencies": {
+    "cheerio": "~0.18.0"
+  }
 }

@@ -11,6 +11,7 @@
 module.exports = function (grunt) {
 
     var path = require('path');
+    var cheerio = require('cheerio');
     var appcache = require('./lib/appcache').init(grunt);
 
     function array(input) {
@@ -48,7 +49,14 @@ module.exports = function (grunt) {
         return matches;
     }
 
+    function uniq(array) {
+        return array.filter(function (value, index) {
+            return array.indexOf(value) === index;
+        });
+    }
+
     grunt.registerMultiTask('appcache', 'Automatically generates an HTML5 AppCache manifest from a list of files.', function () {
+        var self = this;
         var output = path.normalize(this.data.dest);
         var options = this.options({
             basePath: process.cwd(),
@@ -68,28 +76,73 @@ module.exports = function (grunt) {
         if (typeof this.data.cache === 'object') {
             this.data.cache.patterns = array(this.data.cache.patterns || []);
             this.data.cache.literals = array(this.data.cache.literals || []);
+            this.data.cache.pageslinks = array(this.data.cache.pageslinks || []);
             cachePatterns = this.data.cache.patterns;
         }
-        var cache = expand(cachePatterns, options.basePath).filter(function (path) {
-            return ignored.indexOf(path) === -1;
-        });
-        if (typeof options.baseUrl === 'string') {
-            cache = cache.map(function (path) {
-                return joinUrl(options.baseUrl, path);
+
+        var fallback = array(this.data.fallback || []);
+        var network = array(this.data.network || []);
+        var cache = [];
+
+        if (this.data.includes) {
+            // first parse appcache files to include it
+            expand(this.data.includes, options.basePath)
+            .map(function (path) {
+                return options.basePath ? joinUrl(options.basePath, path) : path;
+            })
+            .forEach(function(filename) {
+                var manifest = appcache.readManifest(filename);
+                Array.prototype.push.apply(cache, manifest.cache);
+                Array.prototype.push.apply(network, manifest.network);
+                Array.prototype.push.apply(fallback, manifest.fallback);
             });
         }
+
         if (typeof this.data.cache === 'object') {
+            // seconds add link to the cache
+            expand(this.data.cache.pageslinks).forEach(function(filename) {
+                var content = grunt.file.read(filename);
+                var $ = cheerio.load(content); 
+                // parse links
+                $('link[href]').each(function() {
+                    var href = $(this).attr('href');
+                    if(href.indexOf('data:') !== 0) {
+                        cache.push(href);
+                    }
+                });
+
+                // parse scripts
+                $('script[src]').each(function() {
+                    var src = $(this).attr('src');
+                    if(src.indexOf('data:') !== 0) {
+                        cache.push(src);                     
+                    }
+                });
+            });
+
+            // third add literals to the cache
             Array.prototype.push.apply(cache, this.data.cache.literals);
         }
+
+        // then add patterns to the cache
+        Array.prototype.push.apply(cache,
+            expand(cachePatterns, options.basePath)
+            .filter(function (path) {
+                return ignored.indexOf(path) === -1;
+            })
+            .map(function (path) {
+                return self.data.baseUrl ? joinUrl(self.data.baseUrl, path) : path;
+            })
+        );
 
         var manifest = {
             version: {
                 revision: 1,
                 date: new Date()
             },
-            cache: cache,
-            network: array(this.data.network || []),
-            fallback: array(this.data.fallback || []),
+            cache: uniq(cache),
+            network: uniq(network),
+            fallback: uniq(fallback),
             settings: options.preferOnline ? ['prefer-online'] : []
         };
 

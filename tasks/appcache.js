@@ -12,48 +12,8 @@ module.exports = function (grunt) {
 
     var path = require('path');
     var cheerio = require('cheerio');
+    var utils = require('./lib/utils').init(grunt);
     var appcache = require('./lib/appcache').init(grunt);
-
-    function array(input) {
-        return Array.isArray(input) ? input : [input];
-    }
-
-    function isUrl(path) {
-        return (/^(?:https?:)?\/\//i).test(path);
-    }
-
-    function joinUrl(/* ... */) {
-        return Array.prototype.map.call(arguments, function (part) {
-            // remove trailing slashes
-            return part.replace(/\/+$/, '');
-        }).join('/');
-    }
-
-    function relative(basePath, filePath) {
-        return path.relative(
-                path.normalize(basePath),
-                path.normalize(filePath));
-    }
-
-    function expand(pattern, basePath) {
-        var matches = grunt.file.expand({
-            filter: function (src) {
-                return grunt.file.isFile(src) || isUrl(src);
-            }
-        }, pattern);
-        if (typeof basePath === 'string') {
-            matches = matches.map(function (filePath) {
-                return relative(basePath, filePath);
-            });
-        }
-        return matches;
-    }
-
-    function uniq(array) {
-        return array.filter(function (value, index) {
-            return array.indexOf(value) === index;
-        });
-    }
 
     grunt.registerMultiTask('appcache', 'Automatically generates an HTML5 AppCache manifest from a list of files.', function () {
         var self = this;
@@ -66,29 +26,31 @@ module.exports = function (grunt) {
 
         var ignored = [];
         if (this.data.ignored) {
-            ignored = expand(this.data.ignored, options.basePath);
+            ignored = utils.expand(this.data.ignored, options.basePath);
         }
         if (options.ignoreManifest) {
-            ignored.push(relative(options.basePath, output));
+            ignored.push(utils.relative(options.basePath, output));
         }
 
-        var cachePatterns = array(this.data.cache || []);
+        var cachePatterns = utils.array(this.data.cache || []);
         if (typeof this.data.cache === 'object') {
-            this.data.cache.patterns = array(this.data.cache.patterns || []);
-            this.data.cache.literals = array(this.data.cache.literals || []);
-            this.data.cache.pageslinks = array(this.data.cache.pageslinks || []);
+            this.data.cache.patterns = utils.array(this.data.cache.patterns || []);
+            this.data.cache.literals = utils.array(this.data.cache.literals || []);
+            this.data.cache.pageslinks = utils.array(this.data.cache.pageslinks || []);
             cachePatterns = this.data.cache.patterns;
         }
 
-        var fallback = array(this.data.fallback || []);
-        var network = array(this.data.network || []);
+        var fallback = utils.array(this.data.fallback || []);
+        var network = utils.array(this.data.network || []);
         var cache = [];
 
         if (this.data.includes) {
             // first parse appcache files to include it
-            expand(this.data.includes, options.basePath)
+            utils.expand(this.data.includes, options.basePath)
             .map(function (path) {
-                return options.basePath ? joinUrl(options.basePath, path) : path;
+                return options.basePath ?
+                       utils.joinUrl(options.basePath, path) :
+                       path;
             })
             .forEach(function(filename) {
                 var manifest = appcache.readManifest(filename);
@@ -100,7 +62,7 @@ module.exports = function (grunt) {
 
         if (typeof this.data.cache === 'object') {
             // seconds add link to the cache
-            expand(this.data.cache.pageslinks).forEach(function(filename) {
+            utils.expand(this.data.cache.pageslinks).forEach(function(filename) {
                 var content = grunt.file.read(filename);
                 var $ = cheerio.load(content);
                 // parse links
@@ -126,12 +88,14 @@ module.exports = function (grunt) {
 
         // then add patterns to the cache
         Array.prototype.push.apply(cache,
-            expand(cachePatterns, options.basePath)
+            utils.expand(cachePatterns, options.basePath)
             .filter(function (path) {
                 return ignored.indexOf(path) === -1;
             })
             .map(function (path) {
-                return self.data.baseUrl ? joinUrl(self.data.baseUrl, path) : path;
+                return self.data.baseUrl ?
+                       utils.joinUrl(self.data.baseUrl, path) :
+                       path;
             })
         );
 
@@ -140,9 +104,9 @@ module.exports = function (grunt) {
                 revision: 1,
                 date: new Date()
             },
-            cache: uniq(cache),
-            network: uniq(network),
-            fallback: uniq(fallback),
+            cache: utils.uniq(cache),
+            network: utils.uniq(network),
+            fallback: utils.uniq(fallback),
             settings: options.preferOnline ? ['prefer-online'] : []
         };
 

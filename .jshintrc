@@ -18,7 +18,6 @@
   "multistr": true,
   "smarttabs": true,
   "supernew": true,
-
   "browser": true,
   "node": true
 }

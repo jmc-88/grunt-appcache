@@ -13,6 +13,24 @@ module.exports.init = function (grunt) {
   var path = require('path');
   var exports = {};
 
+  var manifestSections = {
+    'CACHE:': 'cache',
+    'NETWORK:': 'network',
+    'FALLBACK:': 'fallback',
+    'SETTINGS': 'settings'
+  };
+
+  exports.parseVersionLine = function (line) {
+    var re = /# rev (\d+) - (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z)/;
+    var matches = re.exec(line);
+    if (matches) {
+      return {
+        revision: parseInt(matches[1], 10),
+        date: new Date(matches[2]).toISOString(),
+      };
+    }
+  };
+
   exports.readManifest = function (filepath) {
     if (!filepath || !grunt.file.exists(filepath)) {
       grunt.verbose.error('file "' + filepath + '" does not exist');
@@ -38,13 +56,6 @@ module.exports.init = function (grunt) {
         return line.trim();
       });
 
-    var manifestSections = {
-      'CACHE:': 'cache',
-      'NETWORK:': 'network',
-      'FALLBACK:': 'fallback',
-      'SETTINGS': 'settings'
-    };
-
     for (var i = 0; i < lines.length; ++i) {
       if (lines[i] === '') {
         continue;
@@ -52,11 +63,9 @@ module.exports.init = function (grunt) {
 
       if (lines[i][0] === '#') {
         if (!foundVersion) {
-          var re = /# rev (\d+) - (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z)/;
-          var matches = re.exec(lines[i]);
-          if (matches) {
-            manifest.version.revision = parseInt(matches[1], 10);
-            manifest.version.date = new Date(matches[2]).toISOString();
+          var version = exports.parseVersionLine(lines[i]);
+          if (version) {
+            manifest.version = version;
             foundVersion = true;
           }
         }

@@ -1,4 +1,4 @@
-# grunt-appcache
+# grunt-appcache [![Build Status](https://travis-ci.org/canvace/grunt-appcache.svg?branch=master)](https://travis-ci.org/canvace/grunt-appcache)
 
 > Grunt task for generating an HTML5 AppCache manifest from the specified list of files.
 

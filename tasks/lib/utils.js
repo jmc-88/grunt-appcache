@@ -48,8 +48,5 @@ module.exports.init = function(grunt) {
     return matches.concat(urls);
   };
 
-  exports.uniq = (array) =>
-    array.filter((value, index) => array.indexOf(value) === index);
-
   return exports;
 };

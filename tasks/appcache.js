@@ -95,9 +95,9 @@ module.exports = function(grunt) {
         revision: 1,
         date: new Date(),
       },
-      cache: utils.uniq(cache),
-      network: utils.uniq(network),
-      fallback: utils.uniq(fallback),
+      cache: [...new Set(cache)],
+      network: [...new Set(network)],
+      fallback: [...new Set(fallback)],
       settings: options.preferOnline ? ['prefer-online'] : [],
     };
 

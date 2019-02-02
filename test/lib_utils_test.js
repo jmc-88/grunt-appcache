@@ -76,13 +76,4 @@ exports.libUtils = {
         'should expand glob patterns to relative paths');
     test.done();
   },
-
-  uniq: (test) => {
-    test.expect(2);
-    test.deepEqual(utils.uniq([1, 2, 3, 1, 2, 3]), [1, 2, 3],
-        'should remove duplicates');
-    test.deepEqual(utils.uniq([1, 'test', 3, 'test']), [1, 'test', 3],
-        'should remove duplicates in a mixed array');
-    test.done();
-  },
 };

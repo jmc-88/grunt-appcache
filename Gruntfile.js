@@ -14,7 +14,6 @@ module.exports = function(grunt) {
         'tasks/**/*.js',
         'test/**/*.js',
         '<%= nodeunit.tests %>',
-        '!node_modules/**/*.js',
       ],
     },
 

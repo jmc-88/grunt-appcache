@@ -1,7 +1,7 @@
 {
   "name": "grunt-appcache",
   "description": "Grunt task for generating an HTML5 AppCache manifest.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "homepage": "https://github.com/jmc-88/grunt-appcache/",
   "author": {
     "name": "Daniele Cocca",

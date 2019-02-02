@@ -1,0 +1,6 @@
+{
+    "parserOptions": {
+        "ecmaVersion": 2019
+    },
+    "extends": "google"
+}

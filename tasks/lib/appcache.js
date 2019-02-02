@@ -8,21 +8,21 @@
 
 'use strict';
 
-module.exports.init = function (grunt) {
+module.exports.init = function(grunt) {
+  const path = require('path');
+  const exports = {};
 
-  var path = require('path');
-  var exports = {};
-
-  var manifestSections = {
+  const manifestSections = {
     'CACHE:': 'cache',
     'NETWORK:': 'network',
     'FALLBACK:': 'fallback',
-    'SETTINGS': 'settings'
+    'SETTINGS': 'settings',
   };
 
-  exports.parseVersionLine = function (line) {
-    var re = /# rev (\d+) - (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z)/;
-    var matches = re.exec(line);
+  exports.parseVersionLine = function(line) {
+    const re =
+      /# rev (\d+) - (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z)/;
+    const matches = re.exec(line);
     if (matches) {
       return {
         revision: parseInt(matches[1], 10),
@@ -31,39 +31,39 @@ module.exports.init = function (grunt) {
     }
   };
 
-  exports.readManifest = function (filepath) {
+  exports.readManifest = function(filepath) {
     if (!filepath || !grunt.file.exists(filepath)) {
       grunt.verbose.error('file "' + filepath + '" does not exist');
       return false;
     }
 
-    var manifest = {
+    const manifest = {
       version: {
         revision: 1,
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
       },
       cache: [],
       network: [],
-      fallback: []
+      fallback: [],
     };
-    var section = 'cache';
-    var foundHeader = false;
-    var foundVersion = false;
+    let section = 'cache';
+    let foundHeader = false;
+    let foundVersion = false;
 
-    var lines = grunt.file.read(filepath)
-      .split(/\r?\n/)
-      .map(function (line) {
-        return line.trim();
-      });
+    const lines = grunt.file.read(filepath)
+        .split(/\r?\n/)
+        .map(function(line) {
+          return line.trim();
+        });
 
-    for (var i = 0; i < lines.length; ++i) {
+    for (let i = 0; i < lines.length; ++i) {
       if (lines[i] === '') {
         continue;
       }
 
       if (lines[i][0] === '#') {
         if (!foundVersion) {
-          var version = exports.parseVersionLine(lines[i]);
+          const version = exports.parseVersionLine(lines[i]);
           if (version) {
             manifest.version = version;
             foundVersion = true;
@@ -80,13 +80,15 @@ module.exports.init = function (grunt) {
         foundHeader = true;
       } else if (lines[i] in manifestSections) {
         if (!foundHeader) {
-          grunt.verbose.error('found section "' + lines[i] + '" before the "CACHE MANIFEST" header');
+          grunt.verbose.error(
+              `found section "${lines[i]}" before the "CACHE MANIFEST" header`);
           return false;
         }
         section = manifestSections[lines[i]];
       } else {
         if (!foundHeader) {
-          grunt.verbose.error('unexpected "' + lines[i] + '" before the "CACHE MANIFEST" header');
+          grunt.verbose.error(`unexpected "${lines[i]}" before the `+
+            `"CACHE MANIFEST" header`);
           return false;
         }
         manifest[section].push(lines[i]);
@@ -96,14 +98,15 @@ module.exports.init = function (grunt) {
     return manifest;
   };
 
-  exports.writeManifest = function (filepath, manifest) {
-    var contents = ['CACHE MANIFEST'];
-    var i;
+  exports.writeManifest = function(filepath, manifest) {
+    const contents = ['CACHE MANIFEST'];
+    let i;
 
-    if (manifest.version.date.toISOString) {
-      contents.push('# rev ' + manifest.version.revision + ' - ' + manifest.version.date.toISOString());
+    const ver = manifest.version;
+    if (ver.date.toISOString) {
+      contents.push(`# rev ${ver.revision} - ${ver.date.toISOString()}`);
     } else {
-      contents.push('# rev ' + manifest.version.revision + ' - ' + manifest.version.date);
+      contents.push(`# rev ${ver.revision} - ${ver.date}`);
     }
 
     if (0 !== manifest.cache.length) {
@@ -142,5 +145,4 @@ module.exports.init = function (grunt) {
   };
 
   return exports;
-
 };

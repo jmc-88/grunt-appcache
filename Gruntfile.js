@@ -8,18 +8,15 @@
 
 'use strict';
 
-module.exports = function (grunt) {
-
+module.exports = function(grunt) {
   grunt.initConfig({
-    jshint: {
+    eslint: {
       all: [
         'Gruntfile.js',
         'tasks/**/*.js',
+        'test/**/*.js',
         '<%= nodeunit.tests %>',
       ],
-      options: {
-        jshintrc: '.jshintrc',
-      },
     },
 
     clean: {
@@ -28,28 +25,12 @@ module.exports = function (grunt) {
 
     appcache: {
       options: {
-        basePath: 'test'
+        basePath: 'test',
       },
       test: {
         dest: 'tmp/appcache.manifest',
-        cache: 'test/**/*'
-      }
-    },
-
-    jsbeautifier: {
-      modify: {
-        src: ['Gruntfile.js', 'tasks/**/*.js', 'test/**/*.js'],
-        options: {
-          config: '.jsbeautifyrc'
-        }
+        cache: 'test/**/*',
       },
-      verify: {
-        src: ['Gruntfile.js', 'tasks/**/*.js', 'test/**/*.js'],
-        options: {
-          mode: 'VERIFY_ONLY',
-          config: '.jsbeautifyrc'
-        }
-      }
     },
 
     nodeunit: {
@@ -58,14 +39,12 @@ module.exports = function (grunt) {
   });
 
   grunt.loadTasks('tasks');
-  grunt.loadNpmTasks('grunt-jsbeautifier');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-nodeunit');
 
   grunt.registerTask('build', ['clean', 'appcache']);
-  grunt.registerTask('test', ['jshint', 'nodeunit']);
-  grunt.registerTask('verify', ['build', 'jsbeautifier:verify', 'test']);
-  grunt.registerTask('default', ['build', 'jsbeautifier:modify', 'test']);
-
+  grunt.registerTask('test', ['eslint', 'nodeunit']);
+  grunt.registerTask('verify', ['build', 'test']);
+  grunt.registerTask('default', ['build', 'test']);
 };

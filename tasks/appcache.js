@@ -6,25 +6,28 @@
  * Licensed under the MIT license.
  */
 
+/* eslint-disable no-invalid-this */
 'use strict';
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
+  const path = require('path');
+  const cheerio = require('cheerio');
+  const utils = require('./lib/utils').init(grunt);
+  const appcache = require('./lib/appcache').init(grunt);
 
-  var path = require('path');
-  var cheerio = require('cheerio');
-  var utils = require('./lib/utils').init(grunt);
-  var appcache = require('./lib/appcache').init(grunt);
+  const taskDescription =
+    'Automatically generates an HTML5 AppCache manifest from a list of files.';
 
-  grunt.registerMultiTask('appcache', 'Automatically generates an HTML5 AppCache manifest from a list of files.', function () {
-    var self = this;
-    var output = path.normalize(this.data.dest);
-    var options = this.options({
+  grunt.registerMultiTask('appcache', taskDescription, function() {
+    const self = this;
+    const output = path.normalize(this.data.dest);
+    const options = this.options({
       basePath: process.cwd(),
       ignoreManifest: true,
-      preferOnline: false
+      preferOnline: false,
     });
 
-    var ignored = [];
+    let ignored = [];
     if (this.data.ignored) {
       ignored = utils.expand(this.data.ignored, options.basePath);
     }
@@ -32,50 +35,51 @@ module.exports = function (grunt) {
       ignored.push(utils.relative(options.basePath, output));
     }
 
-    var cachePatterns = utils.array(this.data.cache || []);
+    let cachePatterns = utils.array(this.data.cache || []);
     if (typeof this.data.cache === 'object') {
       this.data.cache.patterns = utils.array(this.data.cache.patterns || []);
       this.data.cache.literals = utils.array(this.data.cache.literals || []);
-      this.data.cache.pageslinks = utils.array(this.data.cache.pageslinks || []);
+      this.data.cache.pageslinks = utils.array(
+          this.data.cache.pageslinks || []);
       cachePatterns = this.data.cache.patterns;
     }
 
-    var fallback = utils.array(this.data.fallback || []);
-    var network = utils.array(this.data.network || []);
-    var cache = [];
+    const fallback = utils.array(this.data.fallback || []);
+    const network = utils.array(this.data.network || []);
+    const cache = [];
 
     if (this.data.includes) {
       // first parse appcache files to include it
       utils.expand(this.data.includes, options.basePath)
-        .map(function (path) {
-          return options.basePath ?
+          .map(function(path) {
+            return options.basePath ?
             utils.joinUrl(options.basePath, path) :
             path;
-        })
-        .forEach(function (filename) {
-          var manifest = appcache.readManifest(filename);
-          Array.prototype.push.apply(cache, manifest.cache);
-          Array.prototype.push.apply(network, manifest.network);
-          Array.prototype.push.apply(fallback, manifest.fallback);
-        });
+          })
+          .forEach(function(filename) {
+            const manifest = appcache.readManifest(filename);
+            Array.prototype.push.apply(cache, manifest.cache);
+            Array.prototype.push.apply(network, manifest.network);
+            Array.prototype.push.apply(fallback, manifest.fallback);
+          });
     }
 
     if (typeof this.data.cache === 'object') {
       // seconds add link to the cache
-      utils.expand(this.data.cache.pageslinks).forEach(function (filename) {
-        var content = grunt.file.read(filename);
-        var $ = cheerio.load(content);
+      utils.expand(this.data.cache.pageslinks).forEach(function(filename) {
+        const content = grunt.file.read(filename);
+        const $ = cheerio.load(content);
         // parse links
-        $('link[href]').each(function () {
-          var href = $(this).attr('href');
+        $('link[href]').each(function() {
+          const href = $(this).attr('href');
           if (href.indexOf('data:') !== 0) {
             cache.push(href);
           }
         });
 
         // parse scripts
-        $('script[src]').each(function () {
-          var src = $(this).attr('src');
+        $('script[src]').each(function() {
+          const src = $(this).attr('src');
           if (src.indexOf('data:') !== 0) {
             cache.push(src);
           }
@@ -88,30 +92,30 @@ module.exports = function (grunt) {
 
     // then add patterns to the cache
     Array.prototype.push.apply(cache,
-      utils.expand(cachePatterns, options.basePath)
-      .filter(function (path) {
-        return ignored.indexOf(path) === -1;
-      })
-      .map(function (path) {
-        return self.data.baseUrl ?
+        utils.expand(cachePatterns, options.basePath)
+            .filter(function(path) {
+              return ignored.indexOf(path) === -1;
+            })
+            .map(function(path) {
+              return self.data.baseUrl ?
           utils.joinUrl(self.data.baseUrl, path) :
           path;
-      })
+            })
     );
 
-    var manifest = {
+    const manifest = {
       version: {
         revision: 1,
-        date: new Date()
+        date: new Date(),
       },
       cache: utils.uniq(cache),
       network: utils.uniq(network),
       fallback: utils.uniq(fallback),
-      settings: options.preferOnline ? ['prefer-online'] : []
+      settings: options.preferOnline ? ['prefer-online'] : [],
     };
 
     if (grunt.file.exists(output)) {
-      var original = appcache.readManifest(output);
+      const original = appcache.readManifest(output);
       manifest.version.revision = (1 + original.version.revision);
     }
 
@@ -124,5 +128,4 @@ module.exports = function (grunt) {
       path.basename(output) +
       '" created.');
   });
-
 };

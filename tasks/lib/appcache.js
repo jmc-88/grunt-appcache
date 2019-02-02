@@ -17,7 +17,7 @@ module.exports.init = function(grunt) {
     'SETTINGS': 'settings',
   };
 
-  exports.parseVersionLine = function(line) {
+  exports.parseVersionLine = (line) => {
     const re =
       /# rev (\d+) - (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z)/;
     const matches = re.exec(line);
@@ -29,9 +29,9 @@ module.exports.init = function(grunt) {
     }
   };
 
-  exports.readManifest = function(filepath) {
+  exports.readManifest = (filepath) => {
     if (!filepath || !grunt.file.exists(filepath)) {
-      grunt.verbose.error('file "' + filepath + '" does not exist');
+      grunt.verbose.error(`file "${filepath}" does not exist`);
       return false;
     }
 
@@ -50,18 +50,16 @@ module.exports.init = function(grunt) {
 
     const lines = grunt.file.read(filepath)
         .split(/\r?\n/)
-        .map(function(line) {
-          return line.trim();
-        });
+        .map((line) => line.trim());
 
-    for (let i = 0; i < lines.length; ++i) {
-      if (lines[i] === '') {
+    for (const line of lines) {
+      if (line === '') {
         continue;
       }
 
-      if (lines[i][0] === '#') {
+      if (line[0] === '#') {
         if (!foundVersion) {
-          const version = exports.parseVersionLine(lines[i]);
+          const version = exports.parseVersionLine(line);
           if (version) {
             manifest.version = version;
             foundVersion = true;
@@ -70,35 +68,34 @@ module.exports.init = function(grunt) {
         continue;
       }
 
-      if (lines[i] === 'CACHE MANIFEST') {
+      if (line === 'CACHE MANIFEST') {
         if (foundHeader) {
           grunt.verbose.error('duplicate "CACHE MANIFEST" header');
           return false;
         }
         foundHeader = true;
-      } else if (lines[i] in manifestSections) {
+      } else if (line in manifestSections) {
         if (!foundHeader) {
           grunt.verbose.error(
-              `found section "${lines[i]}" before the "CACHE MANIFEST" header`);
+              `found section "${line}" before the "CACHE MANIFEST" header`);
           return false;
         }
-        section = manifestSections[lines[i]];
+        section = manifestSections[line];
       } else {
         if (!foundHeader) {
-          grunt.verbose.error(`unexpected "${lines[i]}" before the `+
+          grunt.verbose.error(`unexpected "${line}" before the `+
             `"CACHE MANIFEST" header`);
           return false;
         }
-        manifest[section].push(lines[i]);
+        manifest[section].push(line);
       }
     }
 
     return manifest;
   };
 
-  exports.writeManifest = function(filepath, manifest) {
+  exports.writeManifest = (filepath, manifest) => {
     const contents = ['CACHE MANIFEST'];
-    let i;
 
     const ver = manifest.version;
     if (ver.date.toISOString) {
@@ -110,7 +107,7 @@ module.exports.init = function(grunt) {
     if (0 !== manifest.cache.length) {
       contents.push('');
       contents.push('CACHE:');
-      for (i = 0; i < manifest.cache.length; ++i) {
+      for (let i = 0; i < manifest.cache.length; ++i) {
         contents.push(manifest.cache[i].split(path.sep).join('/'));
       }
     }
@@ -118,7 +115,7 @@ module.exports.init = function(grunt) {
     if (0 !== manifest.network.length) {
       contents.push('');
       contents.push('NETWORK:');
-      for (i = 0; i < manifest.network.length; ++i) {
+      for (let i = 0; i < manifest.network.length; ++i) {
         contents.push(manifest.network[i]);
       }
     }
@@ -126,7 +123,7 @@ module.exports.init = function(grunt) {
     if (0 !== manifest.fallback.length) {
       contents.push('');
       contents.push('FALLBACK:');
-      for (i = 0; i < manifest.fallback.length; ++i) {
+      for (let i = 0; i < manifest.fallback.length; ++i) {
         contents.push(manifest.fallback[i]);
       }
     }
@@ -134,7 +131,7 @@ module.exports.init = function(grunt) {
     if (0 !== manifest.settings.length) {
       contents.push('');
       contents.push('SETTINGS:');
-      for (i = 0; i < manifest.settings.length; ++i) {
+      for (let i = 0; i < manifest.settings.length; ++i) {
         contents.push(manifest.settings[i]);
       }
     }

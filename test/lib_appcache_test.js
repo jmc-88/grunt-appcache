@@ -10,11 +10,9 @@ const grunt = require('grunt');
 const appcache = require('../tasks/lib/appcache').init(grunt);
 
 exports.libAppCache = {
-  setUp: function(done) {
-    done();
-  },
+  setUp: (done) => done(),
 
-  parseVersionLine: function(test) {
+  parseVersionLine: (test) => {
     test.expect(2);
     test.deepEqual(
         appcache.parseVersionLine('# rev 1 - 2015-04-07T23:16:51.444Z'), {
@@ -29,7 +27,7 @@ exports.libAppCache = {
   },
 
   readManifest: {
-    revisionNumber: function(test) {
+    revisionNumber: (test) => {
       test.expect(1);
 
       const actual = appcache.readManifest(

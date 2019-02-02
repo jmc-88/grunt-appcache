@@ -10,11 +10,9 @@ const grunt = require('grunt');
 const utils = require('../tasks/lib/utils').init(grunt);
 
 exports.libUtils = {
-  setUp: function(done) {
-    done();
-  },
+  setUp: (done) => done(),
 
-  array: function(test) {
+  array: (test) => {
     test.expect(3);
     test.deepEqual(utils.array([]), [],
         'should not change the input');
@@ -25,7 +23,7 @@ exports.libUtils = {
     test.done();
   },
 
-  isUrl: function(test) {
+  isUrl: (test) => {
     test.expect(3);
     test.ok(utils.isUrl('http://google.com'),
         'should accept a valid HTTP URL');
@@ -36,7 +34,7 @@ exports.libUtils = {
     test.done();
   },
 
-  joinUrl: function(test) {
+  joinUrl: (test) => {
     test.expect(2);
     test.equal(utils.joinUrl('http://google.com', 'test'),
         'http://google.com/test',
@@ -47,7 +45,7 @@ exports.libUtils = {
     test.done();
   },
 
-  relative: function(test) {
+  relative: (test) => {
     test.expect(3);
     test.equal(utils.relative('/test', '/test/file'), 'file',
         'should transform the path to be relative');
@@ -58,7 +56,7 @@ exports.libUtils = {
     test.done();
   },
 
-  expand: function(test) {
+  expand: (test) => {
     test.expect(4);
     test.deepEqual(
         utils.expand('test/expected/**/*.json'),
@@ -79,7 +77,7 @@ exports.libUtils = {
     test.done();
   },
 
-  uniq: function(test) {
+  uniq: (test) => {
     test.expect(2);
     test.deepEqual(utils.uniq([1, 2, 3, 1, 2, 3]), [1, 2, 3],
         'should remove duplicates');

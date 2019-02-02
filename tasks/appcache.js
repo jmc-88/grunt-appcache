@@ -49,16 +49,11 @@ module.exports = function(grunt) {
     if (this.data.includes) {
       // first parse appcache files to include it
       utils.expand(this.data.includes, options.basePath)
-          .map(function(path) {
-            return options.basePath ?
-            utils.joinUrl(options.basePath, path) :
-            path;
-          })
-          .forEach(function(filename) {
+          .map((path) =>
+            options.basePath ? utils.joinUrl(options.basePath, path) : path)
+          .forEach((filename) => {
             const manifest = appcache.readManifest(filename);
-            Array.prototype.push.apply(cache, manifest.cache);
-            Array.prototype.push.apply(network, manifest.network);
-            Array.prototype.push.apply(fallback, manifest.fallback);
+            cache.push(manifest.cache, manifest.network, manifest.fallback);
           });
     }
 
@@ -85,21 +80,15 @@ module.exports = function(grunt) {
       });
 
       // third add literals to the cache
-      Array.prototype.push.apply(cache, this.data.cache.literals);
+      cache.push(...this.data.cache.literals);
     }
 
     // then add patterns to the cache
-    Array.prototype.push.apply(cache,
-        utils.expand(cachePatterns, options.basePath)
-            .filter(function(path) {
-              return ignored.indexOf(path) === -1;
-            })
-            .map(function(path) {
-              return self.data.baseUrl ?
-          utils.joinUrl(self.data.baseUrl, path) :
-          path;
-            })
-    );
+    const matchingPatterns = utils.expand(cachePatterns, options.basePath)
+        .filter((path) => ignored.indexOf(path) === -1)
+        .map((path) =>
+          self.data.baseUrl ? utils.joinUrl(self.data.baseUrl, path) : path);
+    cache.push(...matchingPatterns);
 
     const manifest = {
       version: {
